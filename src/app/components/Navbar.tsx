@@ -1,95 +1,150 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, Menu } from 'lucide-react';
-import { motion } from 'motion/react';
+import { Menu, ChevronLeft, Shield } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 
-interface NavbarProps {
-  onMenuClick: () => void;
-}
-
-export const Navbar: React.FC<NavbarProps> = ({ onMenuClick }) => {
+const Navbar: React.FC = () => {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
+  /* Navbar scroll effect */
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
-    };
+    const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  /* Lock body scroll when sidebar open */
+  useEffect(() => {
+    document.body.style.overflow = sidebarOpen ? 'hidden' : 'unset';
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [sidebarOpen]);
+
   const navLinks = [
-    { name: 'Home', href: '#home' },
-    { name: 'About', href: '#about' },
-    { name: 'Services', href: '#services' },
-    { name: 'Industries', href: '#industries' },
-    { name: 'Case Studies', href: '#cases' },
-    { name: 'Blog', href: '#blog' },
-    { name: 'Contact', href: '#contact' },
+    'Home',
+    'About',
+    'Services',
+    'Industries',
+    'Case Studies',
+    'Blog',
+    'Contact',
   ];
 
   return (
-    <motion.nav
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled
-          ? 'bg-[#0b112c]/80 backdrop-blur-xl border-b border-cyan-500/20 shadow-lg shadow-cyan-500/10'
-          : 'bg-transparent'
-      }`}
-    >
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-20">
-          {/* Logo */}
-          <motion.a
-            href="#home"
-            className="flex items-center gap-3 group"
-            whileHover={{ scale: 1.05 }}
+    <>
+      {/* ================= NAVBAR ================= */}
+      <AnimatePresence>
+        {!sidebarOpen && (
+          <motion.nav
+            initial={{ y: -40, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: -80, opacity: 0 }}
+            transition={{ duration: 0.3, ease: 'easeOut' }}
+            className={`
+              fixed top-6 left-4 z-[1000]
+              flex items-center gap-3
+              px-3 py-2 rounded-2xl border
+              ${scrolled
+                ? 'bg-white/90 backdrop-blur-md shadow-lg border-blue-200'
+                : 'bg-white shadow-lg border-blue-200'
+              }
+            `}
           >
-            <div className="relative">
-              <Shield className="w-10 h-10 text-cyan-400 group-hover:text-cyan-300 transition-colors" />
-              <div className="absolute inset-0 bg-cyan-400/20 blur-xl group-hover:bg-cyan-400/40 transition-all" />
+            {/* Hamburger */}
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="group flex items-center justify-center rounded-xl bg-blue-600 p-2 transition-all hover:scale-105"
+              aria-label="Open menu"
+            >
+              <Menu className="h-4 w-4 text-white transition-transform group-hover:scale-110" />
+            </button>
+
+            {/* Logo (desktop only) */}
+            <div className="flex items-center gap-2">
+              <Shield className="h-6 w-6 text-blue-900" />
+
+              <p className="text-blue-900 font-bold text-lg">
+                CyberShield
+              </p>
             </div>
-            <span className="text-2xl font-bold bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">
-              CyberShield
-            </span>
-          </motion.a>
 
-          {/* Desktop Navigation */}
-          <div className="hidden lg:flex items-center gap-8">
-            {navLinks.map((link) => (
-              <a
-                key={link.name}
-                href={link.href}
-                className="text-gray-300 hover:text-cyan-400 transition-colors relative group"
+          </motion.nav>
+        )}
+      </AnimatePresence>
+
+      {/* ================= BACKDROP ================= */}
+      <AnimatePresence>
+        {sidebarOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 bg-black/50 z-[1999]"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* ================= SIDEBAR ================= */}
+      <AnimatePresence>
+        {sidebarOpen && (
+          <motion.aside
+            initial={{ x: '-100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '-100%' }}
+            transition={{ duration: 0.3, ease: 'easeOut' }}
+            className="
+              fixed top-0 left-0 z-[2000]
+              h-full bg-white shadow-2xl
+              w-screen md:w-2/12
+            "
+          >
+            {/* Sidebar Header */}
+            <div className="flex items-center justify-between px-4 py-5 border-b">
+              <div className="flex items-center gap-2">
+                <Shield className="h-6 w-6 text-blue-900" />
+
+                <p className="text-blue-900 font-bold text-lg">
+                  CyberShield
+                </p>
+              </div>
+
+              <button
+                onClick={() => setSidebarOpen(false)}
+                className="p-2 rounded-md bg-blue-900 hover:bg-blue-700 transition"
+                aria-label="Close sidebar"
               >
-                {link.name}
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-cyan-400 to-blue-500 group-hover:w-full transition-all duration-300" />
-              </a>
-            ))}
-          </div>
+                <ChevronLeft className="h-5 w-5 text-white" />
+              </button>
+            </div>
 
-          {/* Desktop CTA Button */}
-          <motion.a
-            href="#contact"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="hidden lg:block relative px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-lg overflow-hidden group"
-          >
-            <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity" />
-            <span className="relative z-10 font-semibold text-white">Get Started</span>
-            <div className="absolute inset-0 bg-cyan-400/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
-          </motion.a>
+            {/* Sidebar Menu */}
+            <nav className="p-4 space-y-3">
+              {navLinks.map((item) => (
+                <div
+                  key={item}
+                  className="
+                    px-4 py-3 rounded-lg cursor-pointer
+                    text-gray-700 font-medium
+                    hover:bg-gradient-to-r hover:from-blue-600 hover:to-blue-700
+                    hover:text-white transition-all
+                  "
+                  onClick={() => setSidebarOpen(false)}
+                >
+                  {item}
+                </div>
+              ))}
+            </nav>
+          </motion.aside>
+        )}
+      </AnimatePresence>
 
-          {/* Mobile Menu Button */}
-          <button
-            onClick={onMenuClick}
-            className="lg:hidden p-2 text-cyan-400 hover:bg-cyan-400/10 rounded-lg transition-colors"
-            aria-label="Open menu"
-          >
-            <Menu className="w-6 h-6" />
-          </button>
-        </div>
-      </div>
-    </motion.nav>
+      {/* ================= PAGE CONTENT ================= */}
+      
+    </>
   );
 };
+
+export default Navbar;
